@@ -47,41 +47,94 @@ class KotobaModelManager:
     """Kotoba-Whisperモデルの管理クラス"""
     
     def __init__(self, model: KotobaModel = KotobaModel.V2_0_GGML):
-        self.models_dir = Path("models")
-        self.models_dir.mkdir(exist_ok=True)
         self.model = model
         
-    def ensure_model(self) -> Tuple[str, Path]:
+    def ensure_model(self) -> Tuple[str, str]:
         """モデルの存在確認とダウンロード
-        
         Returns:
-            Tuple[str, Path]: (バックエンドタイプ, モデルパス)
+            Tuple[str, str]: (バックエンドタイプ, モデルパスまたはリポジトリID)
         """
-        # モデル名をファイル名に含める
-        local_filename = f"{self.model.value}_{self.model.filename}"
-        model_path = self.models_dir / local_filename
-        
-        if not model_path.exists():
-            self._download_model(model_path)
-            
-        return self.model.backend_type, model_path
+        if self.model.backend_type in ("faster-whisper", "transformers"):
+            # transformers, faster-whisperはリポジトリIDをそのまま返す
+            return self.model.backend_type, self.model.repo_id
+        else:
+            model_path = self._download_model()
+            return self.model.backend_type, model_path
 
-    def _download_model(self, model_path: Path) -> None:
-        """HuggingFaceからモデルをダウンロード"""
-        log_info(f"モデル {self.model.value} をダウンロード中...")
-        
+    def _download_model(self) -> Path:
+        """HuggingFaceからモデルをダウンロード（キャッシュ優先、ログはダウンロード時のみ）"""
         try:
-            # HuggingFace Hubからダウンロード
+            # まずキャッシュのみで探す
             downloaded_path = hf_hub_download(
                 repo_id=self.model.repo_id,
-                filename=self.model.filename  # HFのリポジトリ内のファイル名はそのまま
+                filename=self.model.filename,
+                local_files_only=True
             )
-            # ダウンロードしたファイルを適切な場所にコピー
-            model_path.parent.mkdir(parents=True, exist_ok=True)
-            import shutil
-            shutil.copy2(downloaded_path, model_path)
-            
-            log_info(f"モデルのダウンロードが完了しました: {model_path}")
-            
-        except Exception as e:
-            raise RuntimeError(f"モデルのダウンロードに失敗しました: {str(e)}") 
+        except Exception:
+            # なければダウンロード
+            log_info(f"モデル {self.model.value} をダウンロード中...")
+            downloaded_path = hf_hub_download(
+                repo_id=self.model.repo_id,
+                filename=self.model.filename,
+                local_files_only=False
+            )
+            log_info(f"モデルのダウンロードが完了しました: {downloaded_path}")
+        return Path(downloaded_path)
+
+# モデルごとのバックエンド種別・推奨パラメータセット（init_options: モデル生成時, infer_options: 推論時）
+MODEL_REGISTRY = {
+    "kotoba-whisper-v2.2": {
+        "backend": "transformers",
+        "init_options": {
+            "batch_size": 8,
+            "trust_remote_code": True,
+            "model_kwargs": {"attn_implementation": "sdpa"},
+        },
+        "infer_options": {
+            "chunk_length_s": 15,
+            # 例: "num_speakers": 3,
+        }
+    },
+    "kotoba-whisper-v2.1": {
+        "backend": "transformers",
+        "init_options": {
+            "batch_size": 16,
+            "trust_remote_code": True,
+            "punctuator": True,
+            "model_kwargs": {"attn_implementation": "sdpa"},
+        },
+        "infer_options": {
+            "chunk_length_s": 15,
+            "return_timestamps": True,
+            "generate_kwargs": {"language": "ja", "task": "transcribe"},
+        }
+    },
+    "kotoba-whisper-v2.0": {
+        "backend": "transformers",
+        "init_options": {
+            "model_kwargs": {"attn_implementation": "sdpa"},
+        },
+        "infer_options": {
+            "return_timestamps": True,
+            "generate_kwargs": {"language": "ja", "task": "transcribe"},
+        }
+    },
+    "kotoba-whisper-v2.0-faster": {
+        "backend": "faster-whisper",
+        "init_options": {
+            "compute_type": "auto",
+        },
+        "infer_options": {
+            "chunk_length": 15,
+            "language": "ja",
+            "condition_on_previous_text": False,
+        }
+    },
+    "kotoba-whisper-v2.0-ggml": {
+        "backend": "whisper.cpp",
+        "init_options": {
+            "language": "ja",
+        },
+        "infer_options": {}
+    },
+} 

@@ -17,7 +17,12 @@ dependencies = [
     "silero-vad",
     "soundfile",
     "pywhispercpp",
-    "huggingface-hub"
+    "huggingface-hub",
+    "punctuators==0.0.5",
+    "pyannote.audio",
+    "diarizers @ git+https://github.com/huggingface/diarizers.git",
+    "stable-ts==2.16.0",
+    "faster-whisper"
 ]
 
 [project.scripts]

@@ -18,7 +18,8 @@ Okosu — Whisper系音声モデルを用いた音声文字起こしツール（
 	•	入力ファイルの読み込み、WAV変換（16kHz, mono）
 	•	Silero VAD による発話区間抽出＋短区間の結合
 	•	whisper.cpp バックエンドによる音声文字起こし（Kotoba v2.0固定）
-	•	出力フォーマット（SRT, TXT）のインターフェース実装
+	•	Transformers バックエンドの実装（v2.0-2.2対応）
+	•	出力フォーマット（SRT, TXT, JSON）のインターフェース実装
 	•	設定の三層構造（CLI引数 > .env > config.toml）
 	•	進捗表示（rich）の実装と最適化
 
@@ -31,9 +32,9 @@ Okosu — Whisper系音声モデルを用いた音声文字起こしツール（
 📦 使用パッケージ
 	•	pywhispercpp
 	•	silero-vad
-	•	transformers（今後対応）
-	•	torch（今後使用予定）
-	•	huggingface_hub（今後自動DL対応予定）
+	•	transformers
+	•	torch
+	•	huggingface_hub
 	•	python-dotenv
 	•	tomllib（Python 3.11+）
 	•	typer, pydub, rich
@@ -44,19 +45,27 @@ Okosu — Whisper系音声モデルを用いた音声文字起こしツール（
 
 📋 優先度付きタスク
 
+✅ 実装済み
+	•	バックエンド抽象化層の実装
+		- BaseWhisperBackendインターフェース定義
+		- 既存のwhisper.cpp実装の移行
+		- バックエンド動的選択機能
+	•	CLIオプション
+		- 出力フォーマット選択（srt, txt, json）
+		- バックエンド選択（whisper.cpp, transformers）
+	•	Transformersバックエンド対応
+		- v2.0-2.2のバージョン互換性対応
+		- 出力フォーマットの統一化
+
 🔥 高優先度
 	•	TranscriptionSegmentクラスの導入
 		- @dataclass化による型安全性の確保
 		- speaker, confidenceなどの拡張フィールド対応
 		- 既存コードの段階的移行
-	•	バックエンド抽象化層の実装
-		- BaseWhisperBackendインターフェース定義
-		- 既存のwhisper.cpp実装の移行
-		- バックエンド動的選択機能
 	•	CLIオプションの拡張
 		- VAD無効化オプション
-		- 出力フォーマット選択
-		- バックエンド選択
+		- モデル自動ダウンロード機能
+		- 言語指定オプション
 
 🔄 中優先度
 	•	Hugging Faceモデル自動DL機能
@@ -64,11 +73,16 @@ Okosu — Whisper系音声モデルを用いた音声文字起こしツール（
 		- キャッシュ管理
 	•	faster-whisperバックエンドの追加
 	•	話者分離機能の基盤実装
+	•	パフォーマンス最適化
+		- マルチスレッド処理の改善
+		- GPU利用の効率化
 
 🌱 低優先度
 	•	GUIプロトタイプ（CLI安定後）
-	•	パフォーマンス最適化
 	•	テストケースの拡充
+	•	国際化対応
+		- エラーメッセージ
+		- ドキュメント
 
 💡 追加提案
 
@@ -99,8 +113,8 @@ config.toml 例：
 [general]
 model_path = "models/ggml-kotoba-whisper-v2.0.bin"
 language = "ja"
-output_format = "srt"
-backend = "whisper.cpp"  # 今後追加予定
+output_format = "srt"  # srt, txt, json
+backend = "whisper.cpp"  # whisper.cpp, transformers
 
 [vad]
 threshold = 0.30

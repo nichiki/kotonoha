@@ -1,6 +1,7 @@
 import os
 from pydub import AudioSegment
 import logging
+import torch
 
 from okosu.vad import VoiceActivityDetector
 from okosu.output import create_formatter
@@ -8,7 +9,7 @@ from okosu.config import get_model_name, get_output_format
 from okosu.preprocessing import AudioPreprocessor
 from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning, suppress_output
 from okosu.backends import create_whisper_backend
-from okosu.models import KotobaModel, KotobaModelManager
+from okosu.models import KotobaModel, KotobaModelManager, MODEL_REGISTRY
 
 
 def _get_model_enum(model_name: str) -> KotobaModel:
@@ -56,11 +57,19 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
         model = _get_model_enum(model_name)
         model_manager = KotobaModelManager(model)
         backend_type, model_path = model_manager.ensure_model()
+        # MODEL_REGISTRYから推奨オプションを取得
+        init_options = MODEL_REGISTRY.get(model_name, {}).get("init_options", {}).copy()
+        infer_options = MODEL_REGISTRY.get(model_name, {}).get("infer_options", {}).copy()
+        # 動的パラメータの決定
+        if "torch_dtype" in init_options:
+            init_options["torch_dtype"] = torch.float16 if torch.cuda.is_available() else torch.float32
+        if "device" not in init_options:
+            init_options["device"] = "cuda:0" if torch.cuda.is_available() else "cpu"
         
         # バックエンドの初期化
         with suppress_output():
             backend = create_whisper_backend(backend_type)
-            backend.load_model(str(model_path))
+            backend.load_model(str(model_path), **init_options)
 
         audio_full = AudioSegment.from_wav(wav_path)
         dur_full = len(audio_full) / 1000.0
@@ -86,7 +95,7 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
 
                 # Whisper処理
                 with suppress_output():
-                    result_segments = backend.transcribe(temp_wav)
+                    result_segments = backend.transcribe(temp_wav, **infer_options)
                 if not result_segments:
                     log_warning(f"区間 {i+1} で文字起こし結果が得られませんでした")
                     continue
@@ -96,7 +105,8 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
                     transcripts.append({
                         "start": seg.start + start,
                         "end": seg.end + start,
-                        "text": seg.text
+                        "text": seg.text,
+                        "speaker": seg.speaker
                     })
 
                 # 進捗状況の更新（1区間完了）

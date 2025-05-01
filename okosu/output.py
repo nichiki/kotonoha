@@ -35,6 +35,9 @@ class SRTFormatter(TranscriptionFormatter):
                 start = self._format_timestamp(seg["start"])
                 end = self._format_timestamp(seg["end"])
                 text = seg.get("text", "").strip()
+                speaker = seg.get("speaker")
+                if speaker:
+                    text = f"{speaker}：{text}"
                 f.write(f"{idx}\n{start} --> {end}\n{text}\n\n")
                 
         return output_path
@@ -59,11 +62,15 @@ class PlainTextFormatter(TranscriptionFormatter):
         output_dir = os.path.dirname(output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-            
+        
         with open(output_path, "w", encoding="utf-8") as f:
             for seg in transcripts:
-                f.write(f"{seg['text']}\n")
-                
+                text = seg.get("text", "").strip()
+                speaker = seg.get("speaker")
+                if speaker:
+                    text = f"{speaker}：{text}"
+                f.write(f"{text}\n")
+        
         return output_path
 
 
