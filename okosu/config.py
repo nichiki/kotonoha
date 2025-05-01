@@ -67,6 +67,15 @@ def get_language() -> str:
     return get_setting("general.language", "LANGUAGE", "ja")
 
 
+def get_backend_type() -> str:
+    """使用するWhisperバックエンドの種類を取得
+    
+    Returns:
+        str: バックエンドの種類（例: "whisper.cpp"）
+    """
+    return get_setting("general.backend", "BACKEND_TYPE", "whisper.cpp")
+
+
 def get_output_format() -> str:
     return get_setting("general.output_format", "OUTPUT_FORMAT", "srt")
 

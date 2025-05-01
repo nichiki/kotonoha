@@ -1,17 +1,17 @@
 import os
-from pywhispercpp.model import Model
 from pydub import AudioSegment
 import logging
 
 from okosu.vad import VoiceActivityDetector
 from okosu.output import create_formatter
-from okosu.config import get_model_path, get_output_format
+from okosu.config import get_model_path, get_output_format, get_backend_type
 from okosu.preprocessing import AudioPreprocessor
 from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning, suppress_output
+from okosu.backends import create_whisper_backend
 
 
 def transcribe_audio(input_path: str, output_format: str = None) -> str:
-    """Main pipeline: VAD segmentation + whisper.cpp transcription + formatted output.
+    """Main pipeline: VAD segmentation + whisper transcription + formatted output.
     
     Args:
         input_path: 入力音声ファイルのパス
@@ -40,12 +40,14 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
         # 3) Load Whisper model and process
         log_info("Whisperモデルを読み込み中...")
         transcripts = []
-        model = None  # モデル変数をブロック外で定義
+        backend = None
         
-        # Whisperモデルの読み込み
+        # Whisperバックエンドの初期化
         with suppress_output():
-            model_file = get_model_path()
-            model = Model(model_file, language="ja")
+            model_path = get_model_path()
+            backend_type = get_backend_type()
+            backend = create_whisper_backend(backend_type)
+            backend.load_model(model_path, language="ja")
 
         audio_full = AudioSegment.from_wav(wav_path)
         dur_full = len(audio_full) / 1000.0
@@ -69,15 +71,20 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
                 )
                 clip.export(temp_wav, format="wav")
 
-                # Whisper処理部分のみsuppress_output
+                # Whisper処理
                 with suppress_output():
-                    chunks = model.transcribe(temp_wav)
-                if not chunks:
+                    result_segments = backend.transcribe(temp_wav)
+                if not result_segments:
                     log_warning(f"区間 {i+1} で文字起こし結果が得られませんでした")
-                for seg in chunks:
-                    s = seg.t0/1000 + start
-                    e = seg.t1/1000 + start
-                    transcripts.append({"start": s, "end": e, "text": seg.text})
+                    continue
+                    
+                for seg in result_segments:
+                    # バックエンドから返されるセグメントは既に適切な形式
+                    transcripts.append({
+                        "start": seg.start + start,
+                        "end": seg.end + start,
+                        "text": seg.text
+                    })
 
                 # 進捗状況の更新（1区間完了）
                 progress.update(
@@ -85,11 +92,11 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
                     description=f"[cyan]文字起こし処理中... ({i+1}/{total_segments}区間)[/cyan]"
                 )
 
-        # モデルの明示的な解放を試みる
+        # バックエンドの明示的な解放
         with suppress_output():
-            if hasattr(model, 'free') and callable(model.free):
-                model.free()
-            del model
+            if backend is not None:
+                backend.free()
+            del backend
 
         # 4) Format and write output
         log_info("出力ファイルを作成中...")

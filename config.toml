@@ -2,6 +2,7 @@
 model_path = "models/ggml-kotoba-whisper-v2.0.bin"
 language = "ja"
 output_format = "srt"
+backend = "whisper.cpp"
 
 [vad]
 threshold = 0.30
