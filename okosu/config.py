@@ -59,21 +59,13 @@ def get_setting(toml_path: str, env_var: str, default: Any) -> Any:
     return default
 
 
-def get_model_path() -> str:
-    return get_setting("general.model_path", "MODEL_PATH", "models/ggml-kotoba-whisper-v2.0.bin")
-
-
-def get_language() -> str:
-    return get_setting("general.language", "LANGUAGE", "ja")
-
-
-def get_backend_type() -> str:
-    """使用するWhisperバックエンドの種類を取得
+def get_model_name() -> str:
+    """使用するKotobaモデルの名前を取得
     
     Returns:
-        str: バックエンドの種類（例: "whisper.cpp"）
+        str: モデル名（例: "kotoba-whisper-v2.0-ggml"）
     """
-    return get_setting("general.backend", "BACKEND_TYPE", "whisper.cpp")
+    return get_setting("model.name", "KOTOBA_MODEL", "kotoba-whisper-v2.0-ggml")
 
 
 def get_output_format() -> str:

@@ -4,10 +4,19 @@ import logging
 
 from okosu.vad import VoiceActivityDetector
 from okosu.output import create_formatter
-from okosu.config import get_model_path, get_output_format, get_backend_type
+from okosu.config import get_model_name, get_output_format
 from okosu.preprocessing import AudioPreprocessor
 from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning, suppress_output
 from okosu.backends import create_whisper_backend
+from okosu.models import KotobaModel, KotobaModelManager
+
+
+def _get_model_enum(model_name: str) -> KotobaModel:
+    """モデル名からKotobaModelの列挙型を取得"""
+    for model in KotobaModel:
+        if model.value == model_name:
+            return model
+    raise ValueError(f"サポートされていないモデル: {model_name}")
 
 
 def transcribe_audio(input_path: str, output_format: str = None) -> str:
@@ -42,12 +51,16 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
         transcripts = []
         backend = None
         
-        # Whisperバックエンドの初期化
+        # モデルの準備
+        model_name = get_model_name()
+        model = _get_model_enum(model_name)
+        model_manager = KotobaModelManager(model)
+        backend_type, model_path = model_manager.ensure_model()
+        
+        # バックエンドの初期化
         with suppress_output():
-            model_path = get_model_path()
-            backend_type = get_backend_type()
             backend = create_whisper_backend(backend_type)
-            backend.load_model(model_path, language="ja")
+            backend.load_model(str(model_path))
 
         audio_full = AudioSegment.from_wav(wav_path)
         dur_full = len(audio_full) / 1000.0

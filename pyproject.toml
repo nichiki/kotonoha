@@ -16,7 +16,8 @@ dependencies = [
     "tqdm",
     "silero-vad",
     "soundfile",
-    "pywhispercpp"
+    "pywhispercpp",
+    "huggingface-hub"
 ]
 
 [project.scripts]
