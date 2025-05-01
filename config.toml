@@ -1,0 +1,10 @@
+[general]
+model_path = "models/ggml-kotoba-whisper-v2.0.bin"
+language = "ja"
+output_format = "srt"
+
+[vad]
+threshold = 0.30
+min_speech_duration_ms = 100
+min_silence_duration_ms = 300
+speech_pad_ms = 50

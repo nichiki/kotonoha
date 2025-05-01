@@ -1,0 +1,26 @@
+[project]
+name = "okosu"
+version = "0.1.0"
+description = "CLI tool for transcribing audio into text using Whisper"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "typer",
+    "rich",
+    "torch",
+    "transformers",
+    "pydub",
+    "python-dotenv",
+    "tqdm",
+    "silero-vad",
+    "soundfile",
+    "pywhispercpp"
+]
+
+[project.scripts]
+okosu = "okosu.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
