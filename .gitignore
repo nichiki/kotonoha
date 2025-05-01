@@ -173,9 +173,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# SpecStory
-.specstory/
-
 # Output files
 outputs/
 
@@ -184,3 +181,7 @@ models/
 
 # Sample files
 sample*.mp3
+
+# SpecStory
+.specstory/
+.specstory/.what-is-this.md
