@@ -11,8 +11,8 @@ transformers.logging.set_verbosity_error()
 # SpeechBrainのロギング設定
 setup_logging(default_level="ERROR")
 
-# okosuのロガーだけINFOレベルに設定
-logging.getLogger("okosu").setLevel(logging.INFO)
+# kotonohaのロガーだけINFOレベルに設定
+logging.getLogger("kotonoha").setLevel(logging.INFO)
 
 # 各ライブラリのログレベルを設定
 loggers = {

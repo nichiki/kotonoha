@@ -1,5 +1,5 @@
 from silero_vad import load_silero_vad, read_audio, get_speech_timestamps as vad_ts
-from okosu.config import get_vad_settings
+from kotonoha.config import get_vad_settings
 
 
 class VoiceActivityDetector:

@@ -1,16 +1,14 @@
 import os
 from pydub import AudioSegment
-import logging
-import warnings
 import torch
 
-from okosu.vad import VoiceActivityDetector
-from okosu.output import create_formatter
-from okosu.config import get_model_name, get_output_format
-from okosu.preprocessing import AudioPreprocessor
-from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning
-from okosu.backends import create_whisper_backend
-from okosu.models import KotobaModel, KotobaModelManager, MODEL_REGISTRY
+from kotonoha.vad import VoiceActivityDetector
+from kotonoha.output import create_formatter
+from kotonoha.config import get_model_name, get_output_format
+from kotonoha.preprocessing import AudioPreprocessor
+from kotonoha.utils import TempFileManager, ProgressManager, log_info, log_warning
+from kotonoha.backends import create_whisper_backend
+from kotonoha.models import KotobaModel, KotobaModelManager, MODEL_REGISTRY
 
 
 def _get_model_enum(model_name: str) -> KotobaModel:

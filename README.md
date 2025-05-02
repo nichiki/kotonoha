@@ -1,6 +1,6 @@
-# 🎯 Okosu
+# 🎯 Kotonoha
 
-Okosuは、ローカル環境で動作する柔軟かつ高速な音声文字起こしツールです。複数のWhisperベースのバックエンド（whisper.cpp, Transformers, faster-whisper）に対応し、環境に応じて最適なパフォーマンスを提供します。
+Kotonohaは、ローカル環境で動作する柔軟かつ高速な音声文字起こしツールです。複数のWhisperベースのバックエンド（whisper.cpp, Transformers, faster-whisper）に対応し、環境に応じて最適なパフォーマンスを提供します。
 
 ## ✨ 特徴
 
@@ -118,14 +118,14 @@ pip install .
 
 ```bash
 # 基本的な文字起こし（SRT形式で出力）
-okosu transcribe input.mp3
+kotonoha transcribe input.mp3
 
 # 出力フォーマットの指定
-okosu transcribe input.mp3 -f txt  # テキスト形式
-okosu transcribe input.mp3 -f srt  # SRT形式
+kotonoha transcribe input.mp3 -f txt  # テキスト形式
+kotonoha transcribe input.mp3 -f srt  # SRT形式
 
 # バージョン確認
-okosu version
+kotonoha version
 ```
 
 ## ⚙️ 設定

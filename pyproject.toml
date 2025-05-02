@@ -1,5 +1,5 @@
 [project]
-name = "okosu"
+name = "kotonoha"
 version = "0.1.0"
 description = "CLI tool for transcribing audio into text using Whisper"
 authors = [
@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-okosu = "okosu.cli:app"
+kotonoha = "kotonoha.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]

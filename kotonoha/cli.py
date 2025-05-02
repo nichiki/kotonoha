@@ -1,9 +1,9 @@
 import typer
 import time
 from datetime import datetime
-import okosu
-from okosu.core import transcribe_audio
-from okosu.utils import console
+import kotonoha
+from kotonoha.core import transcribe_audio
+from kotonoha.utils import console
 
 app = typer.Typer()
 
@@ -37,8 +37,8 @@ def transcribe(
 
 @app.command()
 def version():
-    """Show the version of okosu CLI."""
-    console.print(f"[bold]okosu[/bold] version [blue]{okosu.__version__}[/blue]")
+    """Show the version of kotonoha CLI."""
+    console.print(f"[bold]kotonoha[/bold] version [blue]{kotonoha.__version__}[/blue]")
 
 if __name__ == "__main__":
     app()

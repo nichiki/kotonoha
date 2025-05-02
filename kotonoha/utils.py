@@ -56,8 +56,8 @@ class TempFileManager:
         self.files = set()
 
     def __enter__(self):
-        # 一時ディレクトリの作成
-        self.temp_dir = Path(tempfile.mkdtemp(prefix="okosu_"))
+        """一時ディレクトリの作成"""
+        self.temp_dir = Path(tempfile.mkdtemp(prefix="kotonoha_"))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
