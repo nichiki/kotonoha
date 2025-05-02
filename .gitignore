@@ -185,3 +185,6 @@ sample*.mp3
 # SpecStory
 .specstory/
 .specstory/.what-is-this.md
+
+# Project documentation (work in progress)
+docs/
