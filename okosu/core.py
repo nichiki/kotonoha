@@ -122,7 +122,8 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
             backend.free()
         del backend
 
-        # 4) Format and write output
+        # 4) Sort and format output
+        transcripts.sort(key=lambda x: x["start"])
         log_info("出力ファイルを作成中...")
         format_type = output_format or get_output_format()
         formatter = create_formatter(format_type)
