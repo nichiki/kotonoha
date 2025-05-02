@@ -133,11 +133,11 @@ okosu version
 `config.toml`を使用して詳細な設定が可能です：
 
 ```toml
+[model]
+name = "kotoba-whisper-v2.2"  # 使用するモデル名
+
 [general]
-model_path = "models/ggml-kotoba-whisper-v2.0.bin"
-language = "ja"
-output_format = "srt"  # srt, txt, json
-backend = "whisper.cpp"  # whisper.cpp, transformers
+output_format = "srt"  # srt, txt
 
 [vad]
 threshold = 0.30
@@ -174,33 +174,3 @@ speech_pad_ms = 50
 ## 📝 ライセンス
 
 MITライセンス
-
-### 設定システムの詳細
-
-設定は3層構造になっており、より柔軟な運用が可能です：
-
-1. **CLI引数**: 最も優先度が高く、一時的な設定変更に
-2. **環境変数**（.env）: API keyなどの機密情報の管理に
-3. **設定ファイル**（config.toml）: プロジェクト固有の設定に
-
-`config.toml`の設定例：
-
-```toml
-[general]
-model_path = "models/ggml-kotoba-whisper-v2.0.bin"
-language = "ja"
-output_format = "srt"  # srt, txt, json
-backend = "whisper.cpp"  # whisper.cpp, transformers
-
-[vad]
-threshold = 0.30
-min_speech_duration_ms = 100
-min_silence_duration_ms = 300
-speech_pad_ms = 50
-```
-
-### エラー対処とログ
-
-- エラーメッセージは日本語で表示
-- 詳細なログ出力により問題の特定が容易
-- 処理の進捗状況をリアルタイムで表示
