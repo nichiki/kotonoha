@@ -1,9 +1,9 @@
 [model]
-#name = "kotoba-whisper-v2.0-ggml"
+name = "kotoba-whisper-v2.0-ggml"
 #name = "kotoba-whisper-v2.0-faster"
 #name = "kotoba-whisper-v2.0"
 #name = "kotoba-whisper-v2.1"
-name = "kotoba-whisper-v2.2"
+#name = "kotoba-whisper-v2.2"
 
 [general]
 output_format = "srt"
