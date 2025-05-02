@@ -2,7 +2,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Tuple
 from huggingface_hub import hf_hub_download
-from okosu.utils import log_info
 
 
 class KotobaModel(Enum):
@@ -72,13 +71,11 @@ class KotobaModelManager:
             )
         except Exception:
             # なければダウンロード
-            log_info(f"モデル {self.model.value} をダウンロード中...")
             downloaded_path = hf_hub_download(
                 repo_id=self.model.repo_id,
                 filename=self.model.filename,
                 local_files_only=False
             )
-            log_info(f"モデルのダウンロードが完了しました: {downloaded_path}")
         return Path(downloaded_path)
 
 # モデルごとのバックエンド種別・推奨パラメータセット（init_options: モデル生成時, infer_options: 推論時）
@@ -134,6 +131,10 @@ MODEL_REGISTRY = {
         "backend": "whisper.cpp",
         "init_options": {
             "language": "ja",
+            "disable_log": True,
+            "print_progress": False,
+            "print_realtime": False,
+            "redirect_whispercpp_logs_to": None,
         },
         "infer_options": {}
     },

@@ -62,9 +62,25 @@ class WhisperCppBackend(WhisperBackend):
             model_path: モデルファイルのパス
             **kwargs: 
                 language: 言語指定（デフォルト: "ja"）
+                disable_log: ログ出力を無効化（デフォルト: True）
         """
-        language = kwargs.get("language", "ja")
-        self.model = Model(model_path, language=language)
+        model_kwargs = kwargs.copy()  # kwargsのコピーを作成
+        
+        # ログ制御用のパラメータを取り出す
+        disable_log = model_kwargs.pop("disable_log", True)
+        
+        # whisper.cppでは不要なパラメータを除外
+        model_kwargs.pop("device", None)  # deviceパラメータは使用しない
+        
+        # ログ出力を制御
+        if disable_log:
+            # redirect_whispercpp_logs_toをNoneに設定してログを完全に抑制
+            model_kwargs["redirect_whispercpp_logs_to"] = None
+            # print_progressをFalseに設定してモデルの進捗出力を抑制
+            model_kwargs["print_progress"] = False
+            model_kwargs["print_realtime"] = False
+            
+        self.model = Model(model_path, **model_kwargs)
         
     def transcribe(self, audio_path: str, **kwargs) -> List[TranscriptionSegment]:
         """音声ファイルを文字起こしする

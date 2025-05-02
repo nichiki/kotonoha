@@ -1,46 +1,12 @@
 import tempfile
 import shutil
-import os
-import sys
 from pathlib import Path
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 from typing import Optional
-from contextlib import contextmanager
 
 # グローバルなコンソールインスタンス
 console = Console()
-
-
-@contextmanager
-def suppress_output():
-    """一時的に標準出力と標準エラー出力を抑制するコンテキストマネージャー"""
-    # 標準出力の退避
-    stdout_fd = sys.stdout.fileno()
-    stderr_fd = sys.stderr.fileno()
-    
-    # 標準出力のコピーを保存
-    stdout_save = os.dup(stdout_fd)
-    stderr_save = os.dup(stderr_fd)
-    
-    # /dev/nullを開く
-    devnull = open(os.devnull, 'w')
-    devnull_fd = devnull.fileno()
-    
-    try:
-        # 標準出力を/dev/nullにリダイレクト
-        os.dup2(devnull_fd, stdout_fd)
-        os.dup2(devnull_fd, stderr_fd)
-        yield
-    finally:
-        # 標準出力を元に戻す
-        os.dup2(stdout_save, stdout_fd)
-        os.dup2(stderr_save, stderr_fd)
-        
-        # ファイルディスクリプタをクリーンアップ
-        os.close(stdout_save)
-        os.close(stderr_save)
-        devnull.close()
 
 
 class ProgressManager:

@@ -1,13 +1,14 @@
 import os
 from pydub import AudioSegment
 import logging
+import warnings
 import torch
 
 from okosu.vad import VoiceActivityDetector
 from okosu.output import create_formatter
 from okosu.config import get_model_name, get_output_format
 from okosu.preprocessing import AudioPreprocessor
-from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning, suppress_output
+from okosu.utils import TempFileManager, ProgressManager, log_info, log_warning
 from okosu.backends import create_whisper_backend
 from okosu.models import KotobaModel, KotobaModelManager, MODEL_REGISTRY
 
@@ -30,10 +31,6 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
     Returns:
         str: 生成された出力ファイルのパス
     """
-    # サードパーティライブラリのログレベルを制御
-    logging.getLogger("pywhispercpp").setLevel(logging.WARNING)
-    logging.getLogger("pydub.converter").setLevel(logging.WARNING)
-
     with TempFileManager() as temp_manager:
         # 1) Convert to WAV with preprocessing
         log_info("音声ファイルを前処理中...")
@@ -60,16 +57,22 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
         # MODEL_REGISTRYから推奨オプションを取得
         init_options = MODEL_REGISTRY.get(model_name, {}).get("init_options", {}).copy()
         infer_options = MODEL_REGISTRY.get(model_name, {}).get("infer_options", {}).copy()
+
+        log_info(f"モデル: {model_name} ({backend_type})")
+
         # 動的パラメータの決定
         if "torch_dtype" in init_options:
             init_options["torch_dtype"] = torch.float16 if torch.cuda.is_available() else torch.float32
-        if "device" not in init_options:
-            init_options["device"] = "cuda:0" if torch.cuda.is_available() else "cpu"
+        if "device" not in init_options and backend_type != "whisper.cpp":
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            init_options["device"] = device
+            log_info(f"デバイス: {device}")
+        elif backend_type == "whisper.cpp":
+            log_info("デバイス: cpu (whisper.cpp)")
         
         # バックエンドの初期化
-        with suppress_output():
-            backend = create_whisper_backend(backend_type)
-            backend.load_model(str(model_path), **init_options)
+        backend = create_whisper_backend(backend_type)
+        backend.load_model(str(model_path), **init_options)
 
         audio_full = AudioSegment.from_wav(wav_path)
         dur_full = len(audio_full) / 1000.0
@@ -94,8 +97,7 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
                 clip.export(temp_wav, format="wav")
 
                 # Whisper処理
-                with suppress_output():
-                    result_segments = backend.transcribe(temp_wav, **infer_options)
+                result_segments = backend.transcribe(temp_wav, **infer_options)
                 if not result_segments:
                     log_warning(f"区間 {i+1} で文字起こし結果が得られませんでした")
                     continue
@@ -116,10 +118,9 @@ def transcribe_audio(input_path: str, output_format: str = None) -> str:
                 )
 
         # バックエンドの明示的な解放
-        with suppress_output():
-            if backend is not None:
-                backend.free()
-            del backend
+        if backend is not None:
+            backend.free()
+        del backend
 
         # 4) Format and write output
         log_info("出力ファイルを作成中...")
