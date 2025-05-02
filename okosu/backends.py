@@ -84,7 +84,7 @@ class WhisperCppBackend(WhisperBackend):
                 start=seg.t0/1000,  # ミリ秒を秒に変換
                 end=seg.t1/1000,
                 text=seg.text,
-                confidence=None  # whisper.cppは現状confidence未対応
+                speaker=None
             ) for seg in chunks
         ]
         
@@ -125,8 +125,6 @@ class FasterWhisperBackend(WhisperBackend):
                 start=seg.start,
                 end=seg.end,
                 text=seg.text,
-                confidence=getattr(seg, "avg_logprob", None),
-                words=getattr(seg, "words", None),
                 speaker=None
             ))
         return result
