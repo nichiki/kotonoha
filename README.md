@@ -1,8 +1,13 @@
 # 🎯 Kotonoha
 
-Kotonohaは、ローカル環境で動作する柔軟かつ高速な音声文字起こしツールです。複数のWhisperベースのバックエンド（whisper.cpp, Transformers, faster-whisper）に対応し、環境に応じて最適なパフォーマンスを提供します。
+Kotonohaは、日本語に特化した音声認識モデルKotoba-Whisperを利用したローカル環境で動作する文字起こしツールです。Kotoba-Whisperの各バックエンド（whisper.cpp, Transformers, faster-whisper）に対応し、環境に応じて最適なパフォーマンスを提供します。
 
 ## ✨ 特徴
+
+- **Kotoba-Whisperの活用**
+  - 日本語に最適化された高精度な音声認識モデル
+  - 句読点付与や話者分離などの高度な機能（v2.1, v2.2）
+  - オープンソースで商用利用も可能
 
 - **マルチバックエンド対応**
   - whisper.cpp: 高速な推論が可能なC++実装
